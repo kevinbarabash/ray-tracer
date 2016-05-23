@@ -1,3 +1,5 @@
+document.body.style.margin = 0;
+
 const canvas = document.querySelector('canvas');
 const gl = canvas.getContext('experimental-webgl');
 
@@ -13,6 +15,8 @@ gl.enableVertexAttribArray(attributes.position);
 
 const uniforms = {};
 uniforms.projMatrix = gl.getUniformLocation(program, 'projMatrix');
+uniforms.t = gl.getUniformLocation(program, 't');
+uniforms.mouse = gl.getUniformLocation(program, 'mouse');
 console.log(uniforms);
 
 
@@ -20,6 +24,8 @@ const buffers = {};
 
 const w = 512;
 const h = 512;
+
+let mouse = [0, 0];
 
 // buffers for attributes
 buffers.position = gl.createBuffer();
@@ -39,25 +45,54 @@ gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0, 1, 2, 3]), gl.STATIC_
 
 gl.clearColor(0.5, 0.5, 0.5, 1);
 gl.viewport(0, 0, w, h);
-gl.clear(gl.COLOR_BUFFER_BIT);
 
+let t = 0;
 
-gl.useProgram(program);
+const draw = () => {
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.useProgram(program);
 
-const projMatrix = ortho([], 0, w, 0, h, -1, 1);
-gl.uniformMatrix4fv(uniforms.projMatrix, false, projMatrix);
+    const projMatrix = ortho([], 0, w, 0, h, -1, 1);
+    gl.uniformMatrix4fv(uniforms.projMatrix, false, projMatrix);
+    gl.uniform1f(uniforms.t, t++);
+    gl.uniform2fv(uniforms.mouse, mouse);
 
-// set up vertex attributes before drawing
-gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-gl.vertexAttribPointer(attributes.position, 2, gl.FLOAT, false, 2 * 4, 0);
+    // set up vertex attributes before drawing
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+    gl.vertexAttribPointer(attributes.position, 2, gl.FLOAT, false, 2 * 4, 0);
 
-gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoords);
-gl.vertexAttribPointer(attributes.textureCoords, 2, gl.FLOAT, false, 2 * 4, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoords);
+    gl.vertexAttribPointer(attributes.textureCoords, 2, gl.FLOAT, false, 2 * 4, 0);
 
-gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.faces);
-gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.faces);
+    gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
 
-gl.flush();
+    gl.flush();
+
+    requestAnimationFrame(draw);
+};
+
+requestAnimationFrame(draw);
+
+let drag = false;
+
+document.addEventListener('mousedown', (e) => {
+    mouse = [e.pageX, h - e.pageY];
+    drag = true;
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (drag) {
+        mouse = [e.pageX, h - e.pageY];
+    }
+});
+
+document.addEventListener('mouseup', (e) => {
+    if (drag) {
+        drag = false;
+        mouse = [e.pageX, h - e.pageY];
+    }
+});
 
 
 console.log('buffers');
