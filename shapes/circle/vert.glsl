@@ -1,16 +1,10 @@
 precision mediump float;
 
-attribute float radius;
-attribute vec2 center;
-attribute vec2 corner;
+attribute vec2 pos;
 
 uniform mat4 projMatrix;
 
-varying vec2 uv;
-varying float vRadius;
-
 void main() {
-    gl_Position = projMatrix * vec4(center + radius * corner, 0., 1.);
-    uv = radius * corner;
-    vRadius = radius;
+    gl_Position = projMatrix * vec4(pos, 0., 1.);
+    gl_PointSize = 32.0;
 }
