@@ -24,7 +24,10 @@ const attributes = {};
 const uniforms = {};
 
 attributes.pos = gl.getAttribLocation(program, 'pos');
+attributes.color = gl.getAttribLocation(program, 'color');
+
 gl.enableVertexAttribArray(attributes.pos);
+gl.enableVertexAttribArray(attributes.color);
 
 const quadForLine = (p1, p2) => {
     const dx = p2[0] - p1[0];
@@ -48,6 +51,7 @@ const quadForLine = (p1, p2) => {
 
 const p1 = [512 * Math.random(), 512 * Math.random()];  // start
 const p2 = [512 * Math.random(), 512 * Math.random()];  // finish
+const color = [Math.random(), Math.random(), Math.random()];
 
 uniforms.projMatrix = gl.getUniformLocation(program, 'projMatrix');
 
@@ -60,6 +64,10 @@ buffers.pos = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, buffers.pos);
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(quadForLine(p1, p2)), gl.STATIC_DRAW);
 
+buffers.color = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([...color, ...color, ...color, ...color]), gl.STATIC_DRAW);
+
 buffers.elements = gl.createBuffer();
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.elements);
 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0, 1, 2, 3]), gl.STATIC_DRAW);
@@ -70,6 +78,9 @@ gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0, 1, 2, 3]), gl.STATIC_
 gl.bindBuffer(gl.ARRAY_BUFFER, buffers.pos);
 gl.vertexAttribPointer(attributes.pos, 2, gl.FLOAT, false, 0, 0);
 
+gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+gl.vertexAttribPointer(attributes.color, 3, gl.FLOAT, false, 0, 0);
+
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.elements);
 gl.drawElements(gl.TRIANGLE_STRIP, 4, gl.UNSIGNED_SHORT, 0);
 
@@ -78,9 +89,13 @@ gl.flush();
 const draw = () => {
     const p1 = [512 * Math.random(), 512 * Math.random()];  // start
     const p2 = [512 * Math.random(), 512 * Math.random()];  // finish
+    const color = [Math.random(), Math.random(), Math.random()];
 
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.pos);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(quadForLine(p1, p2)), gl.STATIC_DRAW);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([...color, ...color, ...color, ...color]), gl.STATIC_DRAW);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.elements);
     gl.drawElements(gl.TRIANGLE_STRIP, 4, gl.UNSIGNED_SHORT, 0);
