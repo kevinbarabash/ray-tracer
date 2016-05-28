@@ -3,6 +3,8 @@ const canvas = document.querySelector('canvas');
 // TODO: make it so gl doesn't have to be a global
 const gl = canvas.getContext('webgl');
 
+let mouse = [0, 0];
+
 const draw = (image) => {
     const texture = gl.createTexture();
 
@@ -25,6 +27,7 @@ const draw = (image) => {
     gl.enableVertexAttribArray(attributes.uv);
 
     uniforms.projMatrix = gl.getUniformLocation(program, 'projMatrix');
+    uniforms.mvMatrix = gl.getUniformLocation(program, 'mvMatrix');
     uniforms.uSampler = gl.getUniformLocation(program, "uSampler");
 
     const imgWidth = 500;
@@ -52,9 +55,12 @@ const draw = (image) => {
 
     // TODO: add a model view matrix and rotate the image
     const projMatrix = ortho([], 0, 512, 0, 512, -1, 1);
+    const identity = create();
+    const mvMatrix = translate(identity, identity, [...mouse, 0]);
 
     // uniforms
     gl.uniformMatrix4fv(uniforms.projMatrix, false, projMatrix);
+    gl.uniformMatrix4fv(uniforms.mvMatrix, false, mvMatrix);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -71,6 +77,23 @@ const draw = (image) => {
     gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
 
     gl.flush();
+
+    const update = () => {
+        const identity = create();
+        const [x, y] = mouse;
+        const mvMatrix = translate(identity, identity, [x - 250, y - 166, 0]);
+
+        gl.uniformMatrix4fv(uniforms.mvMatrix, false, mvMatrix);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.elements);
+        gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
+
+        gl.flush();
+
+        requestAnimationFrame(update);
+    }
+
+    update();
 };
 
 const image = new Image();
@@ -79,3 +102,22 @@ image.addEventListener('load', () => {
     draw(image);
 });
 image.src = 'domo_kun.jpg';
+
+let down = false;
+document.addEventListener('mousedown', (e) => {
+    mouse = [e.clientX, 512 - e.clientY];
+    down = true;
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (down) {
+        mouse = [e.clientX, 512 - e.clientY];
+    }
+});
+
+document.addEventListener('mouseup', (e) => {
+    if (down) {
+        mouse = [e.clientX, 512 - e.clientY];
+        down = false;
+    }
+});
