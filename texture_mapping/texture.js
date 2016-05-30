@@ -55,8 +55,8 @@ const draw = (image) => {
 
     // TODO: add a model view matrix and rotate the image
     const projMatrix = ortho([], 0, 512, 0, 512, -1, 1);
-    const identity = create();
-    const mvMatrix = translate(identity, identity, [...mouse, 0]);
+    const mvMatrix = create();
+    translate(mvMatrix, mvMatrix, [...mouse, 0]);
 
     // uniforms
     gl.uniformMatrix4fv(uniforms.projMatrix, false, projMatrix);
@@ -78,10 +78,14 @@ const draw = (image) => {
 
     gl.flush();
 
+    const pos = [0, 0, 0];
+
     const update = () => {
-        const identity = create();
         const [x, y] = mouse;
-        const mvMatrix = translate(identity, identity, [x - 250, y - 166, 0]);
+        identity(mvMatrix);
+        pos[0] = x - 250;
+        pos[1] = y - 166;
+        translate(mvMatrix, mvMatrix, pos);
 
         gl.uniformMatrix4fv(uniforms.mvMatrix, false, mvMatrix);
 
@@ -91,7 +95,7 @@ const draw = (image) => {
         gl.flush();
 
         requestAnimationFrame(update);
-    }
+    };
 
     update();
 };
@@ -105,19 +109,22 @@ image.src = 'domo_kun.jpg';
 
 let down = false;
 document.addEventListener('mousedown', (e) => {
-    mouse = [e.clientX, 512 - e.clientY];
+    mouse[0] = e.clientX;
+    mouse[1] = 512 - e.clientY;
     down = true;
 });
 
 document.addEventListener('mousemove', (e) => {
     if (down) {
-        mouse = [e.clientX, 512 - e.clientY];
+        mouse[0] = e.clientX;
+        mouse[1] = 512 - e.clientY;
     }
 });
 
 document.addEventListener('mouseup', (e) => {
     if (down) {
-        mouse = [e.clientX, 512 - e.clientY];
+        mouse[0] = e.clientX;
+        mouse[1] = 512 - e.clientY;
         down = false;
     }
 });
