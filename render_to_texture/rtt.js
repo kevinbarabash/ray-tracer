@@ -19,19 +19,12 @@ rtt.buffers.elements = createBuffer(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0,
 
 
 // create an empty texture
-var tex = gl.createTexture();
-gl.bindTexture(gl.TEXTURE_2D, tex);
-gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 10, 10, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-gl.bindTexture(gl.TEXTURE_2D, null);
+var tex = createTexture(gl.TEXTURE_2D, gl.RGBA, 10, 10, { minFilter: gl.LINEAR, magFilter: gl.NEAREST });
 
 // create a fbo and attac the texture to it
 var fb = gl.createFramebuffer();
 gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex.texture, 0);
 
 
 gl.clearColor(1., 1., 1., 1.);
@@ -63,9 +56,9 @@ rtt.useProgram();
 
 gl.uniformMatrix4fv(rtt.uniforms.projMatrix, false, projMatrix);
 
-gl.activeTexture(gl.TEXTURE0);
-gl.bindTexture(gl.TEXTURE_2D, tex);
-gl.uniform1i(rtt.uniforms.uSampler, 0);
+gl.activeTexture(gl.TEXTURE1);
+tex.bind();
+gl.uniform1i(rtt.uniforms.uSampler, 1);
 
 rtt.buffers.pos.bind();
 rtt.attributes.pos.pointer(2, gl.FLOAT, false, 0, 0);

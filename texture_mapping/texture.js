@@ -6,44 +6,15 @@ const gl = canvas.getContext('webgl');
 let mouse = [0, 0];
 
 const draw = (image) => {
-    const texture = gl.createTexture();
-
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-
+    const texture = textureFromImage(gl.TEXTURE_2D, gl.RGBA, gl.UNSIGNED_BYTE, image);
     const program = createProgram('texture');
-
-    const attributes = {};
-    const uniforms = {};
-    const buffers = {};
-
-    attributes.pos = gl.getAttribLocation(program, 'pos');
-    attributes.uv = gl.getAttribLocation(program, 'uv');
-    gl.enableVertexAttribArray(attributes.pos);
-    gl.enableVertexAttribArray(attributes.uv);
-
-    uniforms.projMatrix = gl.getUniformLocation(program, 'projMatrix');
-    uniforms.mvMatrix = gl.getUniformLocation(program, 'mvMatrix');
-    uniforms.uSampler = gl.getUniformLocation(program, "uSampler");
 
     const imgWidth = 500;
     const imgHeight = 333;
 
-    buffers.pos = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.pos);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, imgWidth, 0, imgWidth, imgHeight, 0, imgHeight]), gl.STATIC_DRAW);
-
-    buffers.uv = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.uv);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 1, 1, 1, 1, 0, 0, 0]), gl.STATIC_DRAW);
-
-    buffers.elements = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.elements);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0, 1, 2, 3]), gl.STATIC_DRAW);
+    program.buffers.pos = createBuffer(gl.ARRAY_BUFFER, new Float32Array([0, 0, imgWidth, 0, imgWidth, imgHeight, 0, imgHeight]), gl.STATIC_DRAW);
+    program.buffers.uv = createBuffer(gl.ARRAY_BUFFER, new Float32Array([0, 1, 1, 1, 1, 0, 0, 0]), gl.STATIC_DRAW);
+    program.buffers.elements = createBuffer(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0, 1, 2, 3]), gl.STATIC_DRAW);
 
 
     gl.viewport(0, 0, 512, 512);
@@ -51,7 +22,8 @@ const draw = (image) => {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
 
-    gl.useProgram(program);
+    // gl.useProgram(program);
+    program.useProgram();
 
     // TODO: add a model view matrix and rotate the image
     const projMatrix = ortho([], 0, 512, 0, 512, -1, 1);
@@ -59,21 +31,21 @@ const draw = (image) => {
     translate(mvMatrix, mvMatrix, [...mouse, 0]);
 
     // uniforms
-    gl.uniformMatrix4fv(uniforms.projMatrix, false, projMatrix);
-    gl.uniformMatrix4fv(uniforms.mvMatrix, false, mvMatrix);
+    gl.uniformMatrix4fv(program.uniforms.projMatrix, false, projMatrix);
+    gl.uniformMatrix4fv(program.uniforms.mvMatrix, false, mvMatrix);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.uniform1i(uniforms.uSampler, 0);
+    texture.bind();
+    gl.uniform1i(program.uniforms.uSampler, 0);
 
     // vertex attributes
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.pos);
-    gl.vertexAttribPointer(attributes.pos, 2, gl.FLOAT, false, 0, 0);
+    program.buffers.pos.bind();
+    program.attributes.pos.pointer(2, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.uv);
-    gl.vertexAttribPointer(attributes.uv, 2, gl.FLOAT, false, 0, 0);
+    program.buffers.uv.bind();
+    program.attributes.uv.pointer(2, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.elements);
+    program.buffers.elements.bind();
     gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
 
     gl.flush();
@@ -87,9 +59,9 @@ const draw = (image) => {
         pos[1] = y - 166;
         translate(mvMatrix, mvMatrix, pos);
 
-        gl.uniformMatrix4fv(uniforms.mvMatrix, false, mvMatrix);
+        gl.uniformMatrix4fv(program.uniforms.mvMatrix, false, mvMatrix);
 
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.elements);
+        program.buffers.elements.bind();
         gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
 
         gl.flush();
