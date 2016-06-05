@@ -1,6 +1,7 @@
 document.body.style.margin = 0;
 
 const canvas = document.createElement('canvas');
+console.log(window.innerWidth);
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
@@ -13,9 +14,9 @@ const program = createProgram('julia');
 const w = window.innerWidth;
 const h = window.innerHeight;
 
-let mouse = [0, 0];
-let left, right, bottom, _top;
-let dw, dh;
+var mouse = [0, 0];
+var left, right, bottom, _top;
+var dw, dh;
 
 const size = 3;
 
@@ -28,7 +29,13 @@ if (canvas.width > canvas.height) {
     bottom = -size / 2;
     _top = size / 2;
 } else {
-    // TODO implement this
+    dw = 3 / canvas.width;
+    dh = dw;
+
+    left = -size / 2;
+    right = size / 2;
+    bottom = -size / 2 * canvas.height / canvas.width;
+    _top = size / 2 * canvas.height / canvas.width;
 }
 
 const bounds = new Float32Array([left, bottom, right, bottom, right, _top, left, _top]);
@@ -41,9 +48,9 @@ program.buffers.elements = createBuffer(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array
 gl.clearColor(0.5, 0.5, 0.5, 1);
 gl.viewport(0, 0, w, h);
 
-// let t = 0;
+var dragging = false;
 
-const draw = () => {
+const draw = function() {
     gl.clear(gl.COLOR_BUFFER_BIT);
     program.useProgram();
 
@@ -64,21 +71,23 @@ const draw = () => {
 
     gl.flush();
 
-    requestAnimationFrame(draw);
+    if (dragging) {
+        requestAnimationFrame(draw);
+    }
 };
 
 requestAnimationFrame(draw);
 
-let drag = false;
-let lastMouse;
+var lastMouse;
 
-document.addEventListener('mousedown', (e) => {
+document.addEventListener('mousedown', function(e) {
     lastMouse = [e.pageX, h - e.pageY];
-    drag = true;
+    dragging = true;
+    requestAnimationFrame(draw);
 });
 
-document.addEventListener('mousemove', (e) => {
-    if (drag) {
+document.addEventListener('mousemove', function(e) {
+    if (dragging) {
         mouse = [e.pageX, h - e.pageY];
         const dx = mouse[0] - lastMouse[0];
         const dy = mouse[1] - lastMouse[1];
@@ -94,10 +103,55 @@ document.addEventListener('mousemove', (e) => {
     }
 });
 
-document.addEventListener('mouseup', (e) => {
-    if (drag) {
-        drag = false;
+document.addEventListener('mouseup', function(e) {
+    if (dragging) {
+        dragging = false;
         mouse = [e.pageX, h - e.pageY];
+        const dx = mouse[0] - lastMouse[0];
+        const dy = mouse[1] - lastMouse[1];
+        bounds[0] -= dx * dw;
+        bounds[2] -= dx * dw;
+        bounds[4] -= dx * dw;
+        bounds[6] -= dx * dw;
+        bounds[1] -= dy * dh;
+        bounds[3] -= dy * dh;
+        bounds[5] -= dy * dh;
+        bounds[7] -= dy * dh;
+        lastMouse = mouse;
+    }
+});
+
+document.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    const touch = e.changedTouches[0];
+    lastMouse = [touch.pageX, h - touch.pageY];
+    dragging = true;
+    requestAnimationFrame(draw);
+});
+
+document.addEventListener('touchmove', function(e) {
+    if (dragging) {
+        const touch = e.changedTouches[0];
+        mouse = [touch.pageX, h - touch.pageY];
+        const dx = mouse[0] - lastMouse[0];
+        const dy = mouse[1] - lastMouse[1];
+        bounds[0] -= dx * dw;
+        bounds[2] -= dx * dw;
+        bounds[4] -= dx * dw;
+        bounds[6] -= dx * dw;
+        bounds[1] -= dy * dh;
+        bounds[3] -= dy * dh;
+        bounds[5] -= dy * dh;
+        bounds[7] -= dy * dh;
+        lastMouse = mouse;
+    }
+});
+
+document.addEventListener('touchend', function(e) {
+    if (dragging) {
+        dragging = false;
+        const touch = e.changedTouches[0];
+        mouse = [touch.pageX, h - touch.pageY];
         const dx = mouse[0] - lastMouse[0];
         const dy = mouse[1] - lastMouse[1];
         bounds[0] -= dx * dw;
