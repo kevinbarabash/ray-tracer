@@ -1,7 +1,6 @@
 document.body.style.margin = 0;
 
 const canvas = document.createElement('canvas');
-console.log(window.innerWidth);
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
@@ -91,14 +90,14 @@ document.addEventListener('mousemove', function(e) {
         mouse = [e.pageX, h - e.pageY];
         const dx = mouse[0] - lastMouse[0];
         const dy = mouse[1] - lastMouse[1];
-        bounds[0] -= dx * dw;
-        bounds[2] -= dx * dw;
-        bounds[4] -= dx * dw;
-        bounds[6] -= dx * dw;
-        bounds[1] -= dy * dh;
-        bounds[3] -= dy * dh;
-        bounds[5] -= dy * dh;
-        bounds[7] -= dy * dh;
+        bounds[0] -= dx * dw * scale;
+        bounds[2] -= dx * dw * scale;
+        bounds[4] -= dx * dw * scale;
+        bounds[6] -= dx * dw * scale;
+        bounds[1] -= dy * dh * scale;
+        bounds[3] -= dy * dh * scale;
+        bounds[5] -= dy * dh * scale;
+        bounds[7] -= dy * dh * scale;
         lastMouse = mouse;
     }
 });
@@ -109,14 +108,14 @@ document.addEventListener('mouseup', function(e) {
         mouse = [e.pageX, h - e.pageY];
         const dx = mouse[0] - lastMouse[0];
         const dy = mouse[1] - lastMouse[1];
-        bounds[0] -= dx * dw;
-        bounds[2] -= dx * dw;
-        bounds[4] -= dx * dw;
-        bounds[6] -= dx * dw;
-        bounds[1] -= dy * dh;
-        bounds[3] -= dy * dh;
-        bounds[5] -= dy * dh;
-        bounds[7] -= dy * dh;
+        bounds[0] -= dx * dw * scale;
+        bounds[2] -= dx * dw * scale;
+        bounds[4] -= dx * dw * scale;
+        bounds[6] -= dx * dw * scale;
+        bounds[1] -= dy * dh * scale;
+        bounds[3] -= dy * dh * scale;
+        bounds[5] -= dy * dh * scale;
+        bounds[7] -= dy * dh * scale;
         lastMouse = mouse;
     }
 });
@@ -135,14 +134,14 @@ document.addEventListener('touchmove', function(e) {
         mouse = [touch.pageX, h - touch.pageY];
         const dx = mouse[0] - lastMouse[0];
         const dy = mouse[1] - lastMouse[1];
-        bounds[0] -= dx * dw;
-        bounds[2] -= dx * dw;
-        bounds[4] -= dx * dw;
-        bounds[6] -= dx * dw;
-        bounds[1] -= dy * dh;
-        bounds[3] -= dy * dh;
-        bounds[5] -= dy * dh;
-        bounds[7] -= dy * dh;
+        bounds[0] -= dx * dw * scale;
+        bounds[2] -= dx * dw * scale;
+        bounds[4] -= dx * dw * scale;
+        bounds[6] -= dx * dw * scale;
+        bounds[1] -= dy * dh * scale;
+        bounds[3] -= dy * dh * scale;
+        bounds[5] -= dy * dh * scale;
+        bounds[7] -= dy * dh * scale;
         lastMouse = mouse;
     }
 });
@@ -154,14 +153,68 @@ document.addEventListener('touchend', function(e) {
         mouse = [touch.pageX, h - touch.pageY];
         const dx = mouse[0] - lastMouse[0];
         const dy = mouse[1] - lastMouse[1];
-        bounds[0] -= dx * dw;
-        bounds[2] -= dx * dw;
-        bounds[4] -= dx * dw;
-        bounds[6] -= dx * dw;
-        bounds[1] -= dy * dh;
-        bounds[3] -= dy * dh;
-        bounds[5] -= dy * dh;
-        bounds[7] -= dy * dh;
+        bounds[0] -= dx * dw * scale;
+        bounds[2] -= dx * dw * scale;
+        bounds[4] -= dx * dw * scale;
+        bounds[6] -= dx * dw * scale;
+        bounds[1] -= dy * dh * scale;
+        bounds[3] -= dy * dh * scale;
+        bounds[5] -= dy * dh * scale;
+        bounds[7] -= dy * dh * scale;
         lastMouse = mouse;
     }
+});
+
+var scale = 1;
+
+document.addEventListener('wheel', function(e) {
+    if (e.wheelDelta === 0) {
+        return;
+    }
+
+    var dscale = Math.log(Math.abs(e.wheelDelta)) / Math.log(3);
+    dscale = Math.pow(dscale, 0.03);
+
+    if (e.wheelDelta > 0) {
+        scale /= dscale;
+    } else {
+        scale *= dscale;
+    }
+
+    var left = bounds[0];
+    var right = bounds[2];
+    var bottom = bounds[1];
+    var _top = bounds[5];
+
+    var width = right - left;
+    var height = _top - bottom;
+
+    if (e.wheelDelta > 0) {
+        width /= dscale;
+        height /= dscale;
+    } else {
+        width *= dscale;
+        height *= dscale;
+    }
+
+    var cx = (left + right) / 2;
+    var cy = (bottom + _top) / 2;
+
+    left = cx - width / 2;
+    right = cx + width / 2;
+    bottom = cy - height / 2;
+    _top = cy + height / 2;
+
+    bounds[0] = left;
+    bounds[1] = bottom;
+    bounds[2] = right;
+    bounds[3] = bottom;
+    bounds[4] = right;
+    bounds[5] = _top;
+    bounds[6] = left;
+    bounds[7] = _top;
+
+    requestAnimationFrame(draw);
+
+    e.preventDefault();
 });
