@@ -1,12 +1,14 @@
 precision mediump float;
 
+uniform vec2 c;
+
 varying vec2 vUV;
 
 void main() {
 
     float error = 100.0;
     vec2 z = vUV;
-    vec2 c = vec2(0.0, 0.7);
+//    vec2 c = vec2(0.0, 0.7);
 
     int n;
 

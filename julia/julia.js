@@ -38,6 +38,7 @@ if (canvas.width > canvas.height) {
 }
 
 const bounds = new Float32Array([left, bottom, right, bottom, right, _top, left, _top]);
+const c = [0., 0.7];
 
 program.buffers.pos = createBuffer(gl.ARRAY_BUFFER, new Float32Array([0, 0, w, 0, w, h, 0, h]), gl.STATIC_DRAW);
 program.buffers.uv = createBuffer(gl.ARRAY_BUFFER, bounds, gl.STATIC_DRAW);
@@ -55,6 +56,7 @@ const draw = function() {
 
     const projMatrix = ortho([], 0, w, 0, h, -1, 1);
     gl.uniformMatrix4fv(program.uniforms.projMatrix, false, projMatrix);
+    gl.uniform2fv(program.uniforms.c, c);
 
     // set up vertex attributes before drawing
     program.buffers.pos.bind();
@@ -218,3 +220,8 @@ document.addEventListener('wheel', function(e) {
 
     e.preventDefault();
 });
+
+var gui = new dat.GUI();
+
+gui.add(c, '0', -2, 2);
+gui.add(c, '1', -2, 2);
