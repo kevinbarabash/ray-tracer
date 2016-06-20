@@ -38,7 +38,7 @@ if (canvas.width > canvas.height) {
 }
 
 const bounds = new Float32Array([left, bottom, right, bottom, right, _top, left, _top]);
-const c = [0., 0.7];
+const c = [0.1, 0.7];
 
 program.buffers.pos = createBuffer(gl.ARRAY_BUFFER, new Float32Array([0, 0, w, 0, w, h, 0, h]), gl.STATIC_DRAW);
 program.buffers.uv = createBuffer(gl.ARRAY_BUFFER, bounds, gl.STATIC_DRAW);

@@ -8,7 +8,6 @@ void main() {
 
     float error = 100.0;
     vec2 z = vUV;
-//    vec2 c = vec2(0.0, 0.7);
 
     int n;
 
