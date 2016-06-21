@@ -14,6 +14,10 @@ const runFragShader = (shader) => {
     for (let y = 0; y < 512; y++) {
         for (let x = 0; x < 512; x++) {
             const color = shader(x, y);
+            color[0] = 255 * color[0] | 0;
+            color[1] = 255 * color[1] | 0;
+            color[2] = 255 * color[2] | 0;
+            color[3] = 255 * color[3] | 0;
             const offset = 4 * (512 * y + x);
             copy(color, 0, data, offset, 4);
         }
@@ -26,12 +30,12 @@ const spheres = [
     {
         center: [400, 100, 0],
         radius: 64,
-        color: [255, 0, 0],
+        color: [1, 0, 0],
     },
     {
         center: [256, 256, 128],
         radius: 128,
-        color: [0, 255, 255],
+        color: [0, 1, 1],
     }
 ];
 
@@ -109,15 +113,15 @@ const rayShader = (x, y) => {
         });
 
         if (inShadow) {
-            return [0, 0, 0, 255];
+            return [0, 0, 0, 1];
         } else {
             const N = normalize(sub(closestHit, hitSphere.center));
             const shade = dot(sun, N);
             const color = hitSphere.color;
-            return [shade * color[0] | 0, shade * color[1] | 0, shade * color[2] | 0, 255];
+            return [...scale(shade, color), 1];
         }
     } else {
-        return [64, 64, 64, 255];
+        return [0.25, 0.25, 0.25, 1];
     }
 };
 
