@@ -22,8 +22,6 @@ const runFragShader = (shader) => {
     ctx.putImageData(imageData, 0, 0);
 };
 
-const randomInt = (max) => max * Math.random() | 0;
-
 const spheres = [
     {
         center: [400, 100, 0],
@@ -31,14 +29,16 @@ const spheres = [
         color: [255, 0, 0],
     },
     {
-        center: [256, 256, 0],
+        center: [256, 256, 128],
         radius: 128,
         color: [0, 255, 255],
     }
 ];
 
 const dot = (v1, v2) => v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+const add = (v1, v2) => [v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]];
 const sub = (v1, v2) => [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]];
+const scale = (k, v) => [k * v[0], k * v[1], k * v[2]];
 
 const solveQuad = (a, b, c) => {
     const dis = b * b - 4 * a * c;
@@ -49,7 +49,7 @@ const solveQuad = (a, b, c) => {
     } else {
         const result = [
             -0.5 * (b + Math.sqrt(dis)) / a,
-            0.5 * (b + Math.sqrt(dis)) / a
+            -0.5 * (b - Math.sqrt(dis)) / a
         ];
         result.sort();
         return result;
@@ -61,44 +61,67 @@ const normalize = (v) => {
     return [v[0] / len, v[1] / len, v[2] / len];
 };
 
-runFragShader((x, y) => {
-    let color = [0, 0, 0];
+const raySphereIntersection = (O, D, sphere) => {
+    const r = sphere.radius;
+    const C = sphere.center;
+
+    const L = sub(O, C);
+
+    const a = dot(D, D);
+    const b = 2 * dot(D, L);
+    const c = dot(L, L) - r * r;
+
+    return solveQuad(a, b, c);
+};
+
+const rayShader = (x, y) => {
     let max = -Infinity;
-    let hit = null;
-    let center = null;
+    let closestHit = null;
+    let hitSphere = null;
 
     const z = 512;          // ray_z
     const D = [0, 0, -1];   // direction of the ray
     const O = [x, y, z];    // origin of the ray
 
+    const sun = normalize([1, -1, -1]);
+
     spheres.forEach(sphere => {
-        const r = sphere.radius;
-        const C = sphere.center;
-
-        const L = sub(O, C);
-
-        const a = 1;
-        const b = 2 * dot(D, L);
-        const c = dot(L, L) - r * r;
-
-        const result = solveQuad(a, b, c);
+        const result = raySphereIntersection(O, D, sphere);
 
         result.forEach(t => {
-            if (t > max && t < z)  {
+            const hit = add(O, scale(t, D));  // O + Dt
+            if (t > max)  {
                 max = t;
-                color = sphere.color;
-                center = C;
-                hit = [x, y, z - t];  // O + Dt
+                hitSphere = sphere;
+                closestHit = hit;
             }
-        })
+        });
     });
 
-    if (hit) {
-        const N = normalize(sub(hit, center));
-        const shade = -dot([-1/Math.sqrt(3), 1/Math.sqrt(3), -1/Math.sqrt(3)], N);
-        return [shade * color[0] | 0, shade * color[1] | 0, shade * color[2] | 0, 255];
+    const otherSpheres = spheres.filter(sphere => sphere !== hitSphere);
+
+    if (closestHit) {
+
+        const inShadow = otherSpheres.some(sphere => {
+            const D = [1, -1, -1];
+            const result = raySphereIntersection(closestHit, D, sphere);
+            return result.filter(t => t > 0).length > 0;
+        });
+
+        if (inShadow) {
+            return [0, 0, 0, 255];
+        } else {
+            const N = normalize(sub(closestHit, hitSphere.center));
+            const shade = dot(sun, N);
+            const color = hitSphere.color;
+            return [shade * color[0] | 0, shade * color[1] | 0, shade * color[2] | 0, 255];
+        }
     } else {
         return [64, 64, 64, 255];
     }
+};
 
-});
+const start = Date.now();
+runFragShader(rayShader);
+const elapsed = Date.now() - start;
+console.log(`elapsed = ${elapsed}`);
