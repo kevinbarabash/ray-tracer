@@ -22,7 +22,7 @@ gl.viewport(0, 0, w, h);
 gl.clear(gl.COLOR_BUFFER_BIT);
 program.useProgram();
 
-let t = 0;
+var t = 0;
 
 const projMatrix = ortho([], 0, w, 0, h, -1, 1);
 gl.uniformMatrix4fv(program.uniforms.projMatrix, false, projMatrix);
@@ -36,7 +36,7 @@ gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
 
 gl.flush();
 
-const draw = () => {
+const draw = function() {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.uniform1f(program.uniforms.t, t++);
