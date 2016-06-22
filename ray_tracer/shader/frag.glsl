@@ -44,7 +44,7 @@ void main() {
     Sphere spheres[2];
 
     spheres[0] = Sphere(vec3(256., 256., 0.), 128., vec3(0., 1., 1.));
-    spheres[1] = Sphere(vec3(400., 400., 0.), 64., vec3(1., 0., 0.));
+    spheres[1] = Sphere(vec3(400., 412., 128.), 64., vec3(1., 0., 0.));
 
     // antialising offsets
     vec2 offsets[4];
@@ -58,6 +58,10 @@ void main() {
     for (int k = 0; k < 4; k++) {
         vec3 color = vec3(0.25, 0.25, 0.25);
         float z_max = -1000.;
+
+        vec3 closestHit;
+        Sphere hitSphere;
+        bool wasHit = false;
 
         for (int i = 0; i < 2; i++) {
             Sphere sphere = spheres[i];
@@ -81,10 +85,35 @@ void main() {
                 // z+ is coming out of the screen
                 if (hit.z > z_max) {
                     z_max = hit.z;
+                    closestHit = hit;
+                    hitSphere = sphere;
+                    wasHit = true;
 
                     vec3 N = normalize(hit - sphere.center);
                     float shade = dot(sun, N);
                     color = shade * sphere.color;
+                }
+            }
+        }
+
+        if (wasHit) {
+            for (int i = 0; i < 2; i++) {
+                Sphere sphere = spheres[i];
+                if (sphere != hitSphere) {
+                    vec3 D = -sun;  // from the hit point towards the sun
+                    vec3 O = closestHit;
+
+                    int num_solutions;
+                    float solutions[2];
+
+                    raySphereIntersection(O, D, sphere, num_solutions, solutions);
+
+                    if (num_solutions == 2) {
+                        if (solutions[0] < 0. && solutions[1] < 0.) {
+                            color = vec3(0., 0., 0.);
+
+                        }
+                    }
                 }
             }
         }
