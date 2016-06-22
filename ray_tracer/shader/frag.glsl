@@ -1,5 +1,7 @@
 precision mediump float;
 
+uniform float t;
+
 varying vec2 vPosition;
 
 struct Sphere {
@@ -38,13 +40,15 @@ void raySphereIntersection(in vec3 O, in vec3 D, in Sphere sphere, out int num_s
     solveQuad(a, b, c, num_solutions, solutions);
 }
 
+#define N_SAMPLES 1
+
 void main() {
     vec3 sun = normalize(vec3(1., 1., 1.));
 
     Sphere spheres[2];
 
     spheres[0] = Sphere(vec3(256., 256., 0.), 128., vec3(0., 1., 1.));
-    spheres[1] = Sphere(vec3(400., 412., 128.), 64., vec3(1., 0., 0.));
+    spheres[1] = Sphere(vec3(400., 256. + 160. * sin(0.025 * t), 128.), 64., vec3(1., 0., 0.));
 
     // antialising offsets
     vec2 offsets[4];
@@ -55,7 +59,7 @@ void main() {
 
     vec3 avg_color = vec3(0., 0., 0.);
 
-    for (int k = 0; k < 4; k++) {
+    for (int k = 0; k < N_SAMPLES; k++) {
         vec3 color = vec3(0.25, 0.25, 0.25);
         float z_max = -1000.;
 
@@ -63,12 +67,12 @@ void main() {
         Sphere hitSphere;
         bool wasHit = false;
 
+        float camera_z = 512.;
+        vec3 D = vec3(0., 0., -1.);
+        vec3 O = vec3(vPosition + offsets[k], camera_z);
+
         for (int i = 0; i < 2; i++) {
             Sphere sphere = spheres[i];
-
-            float camera_z = 512.;
-            vec3 D = vec3(0., 0., -1.);
-            vec3 O = vec3(vPosition + offsets[k], camera_z);
 
             int num_solutions;
             float solutions[2];
@@ -121,5 +125,5 @@ void main() {
         avg_color += color;
     }
 
-    gl_FragColor = vec4(0.25 * avg_color, 1.);
+    gl_FragColor = vec4(avg_color / float(N_SAMPLES), 1.);
 }

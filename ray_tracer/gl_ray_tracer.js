@@ -22,10 +22,11 @@ gl.viewport(0, 0, w, h);
 gl.clear(gl.COLOR_BUFFER_BIT);
 program.useProgram();
 
-const start = performance.now();
+let t = 0;
 
 const projMatrix = ortho([], 0, w, 0, h, -1, 1);
 gl.uniformMatrix4fv(program.uniforms.projMatrix, false, projMatrix);
+gl.uniform1f(program.uniforms.t, t++);
 
 program.buffers.position.bind();
 program.attributes.position.pointer(2, gl.FLOAT, false, 0, 0);
@@ -35,5 +36,16 @@ gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
 
 gl.flush();
 
-const elapsed = performance.now() - start;
-console.log(`elapsed = ${elapsed}`);
+const draw = () => {
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    gl.uniform1f(program.uniforms.t, t++);
+
+    gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
+
+    gl.flush();
+
+    requestAnimationFrame(draw);
+};
+
+draw();
