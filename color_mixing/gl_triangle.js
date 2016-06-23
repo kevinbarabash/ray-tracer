@@ -1,7 +1,11 @@
 const canvas = document.createElement('canvas');
-canvas.width = 512;
-canvas.height = 512;
-canvas.style.border = 'solid 1px gray';
+if (window.innerWidth < 512 || window.innerHeight < 512) {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+} else {
+    canvas.width = 512;
+    canvas.height = 512;
+}
 document.body.appendChild(canvas);
 
 const gl = canvas.getContext('experimental-webgl');
@@ -72,7 +76,7 @@ var triangle_bary = [
     0, 0, 1,
 ];
 
-var val = 0.5;
+var val = 1.0;
 var triangle_color = [
     val, 0, 0,
     0, val, 0,
@@ -120,7 +124,7 @@ gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0, 1, 2, 3]), gl.STATIC_
 var PROJMATRIX = ortho([], 0, 100, 0, 100, -1, 1);
 var MOVEMATRIX = create();
 
-gl.clearColor(0.0, 0.0, 0.0, 0.5);
+gl.clearColor(0.0, 0.0, 0.0, 0.0);
 
 gl.viewport(0.0, 0.0, canvas.width, canvas.height);
 

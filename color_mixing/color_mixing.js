@@ -1,4 +1,12 @@
-const canvas = document.querySelector('canvas');
+const createCanvas = (width, height, container) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    container.appendChild(canvas);
+    return canvas;
+};
+
+const canvas = createCanvas(Math.min(window.innerWidth, 512), 768, document.body);
 const ctx = canvas.getContext('2d');
 
 // ctx.translate(0.5, 0);
