@@ -5,12 +5,77 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
     <title>Color Mixing</title>
     <style>
+        .color_strip {
+            text-align: center;
+        }
         body {
-            margin: 0;
+            font-family: sans-serif;
         }
     </style>
 </head>
 <body>
+
+<h1>Color Mixing</h1>
+
+<p>
+    The default color blending algorithm is do a simple average on each
+    component of the color.
+</p>
+<p style="text-align: center;font-family:monospace">
+    r = (r<sub>1</sub> + r<sub>2</sub>) / 2<br/>
+    g = (g<sub>1</sub> + r<sub>2</sub>) / 2<br/>
+    b = (b<sub>1</sub> + b<sub>2</sub>) / 2
+</p>
+<p>
+    This results in muddy looking color.  It's darker than we would expect
+    mixing the two colors on the left and right.
+</p>
+<div class="color_strip">
+    <canvas id="discrete_color" width="250" height="50"></canvas>
+</div>
+<p>
+    To fix this we need to square the colors before mixing them and then
+    take the square root of the result.
+</p>
+<p style="text-align: center;font-family:monospace">
+    r = sqrt((r<sub>1</sub><sup>2</sup> + r<sub>2</sub><sup>2</sup>) / 2)<br/>
+    g = sqrt((g<sub>1</sub><sup>2</sup> + r<sub>2</sub><sup>2</sup>) / 2)<br/>
+    b = sqrt((b<sub>1</sub><sup>2</sup> + b<sub>2</sub><sup>2</sup>) / 2)
+</p>
+<p>
+    For a much better explanation see
+    <a href="http://scottsievert.com/blog/2015/04/23/image-sqrt/">
+        http://scottsievert.com/blog/2015/04/23/image-sqrt/
+    </a>
+</p>
+<p>
+    We can extend the formula to work with mixing different amounts of each
+    color instead of equal amounts.  The results in the following formula:
+</p>
+<p style="text-align: center;font-family:monospace">
+    r = sqrt(ar<sub>1</sub><sup>2</sup> + (a-1)r<sup>2</sup>)<br/>
+    g = sqrt(ag<sub>1</sub><sup>2</sup> + (a-1)r<sup>2</sup>)<br/>
+    b = sqrt(ab<sub>1</sub><sup>2</sup> + (a-1)b<sup>2</sup>)
+</p>
+<div class="color_strip">
+    <canvas id="discrete_color_correct" width="250" height="50"></canvas>
+</div>
+<p>
+    This same approach can be applied to alpha blending.  The default alpha
+    blending makes the blended color look too dark.
+</p>
+<div class="color_strip">
+    <canvas id="discrete_alpha" width="250" height="50"></canvas>
+</div>
+<p>
+    These examples show alpha blend with a blue "gradient" on top of gray.
+    In order to add the squares of the colors when doing alpha blending we
+    need to know the color of the pixel bottom pixel that would be presented
+    to the user.
+</p>
+<div class="color_strip">
+    <canvas id="discrete_alpha_correct" width="250" height="50"></canvas>
+</div>
 
 <script src="color_mixing.js"></script>
 
