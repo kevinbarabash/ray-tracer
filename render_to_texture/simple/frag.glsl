@@ -5,33 +5,35 @@ varying vec2 vPos;
 
 uniform sampler2D uSampler;
 
-#define E 2.718281828459
-#define PI 3.14159
+vec3 toLinear(vec3 sRGBColor) {
+    return clamp(mix(
+        pow((sRGBColor + vec3(0.055)) / 1.055, vec3(2.4)),
+        sRGBColor / 12.92,
+        step(sRGBColor, vec3(0.04045))
+    ), 0., 1.);
+}
 
-float rand(vec2 co)
-{
-    float a = 12.9898;
-    float b = 78.233;
-    float c = 43758.5453;
-    float dt = dot(co.xy ,vec2(a,b));
-    float sn = mod(dt,3.14);
-    return fract(sin(sn) * c);
+vec3 toSRGB(vec3 linearColor) {
+    return clamp(mix(
+        1.055 * pow(linearColor, vec3(1. / 2.4)) - vec3(0.055),
+        12.92 * linearColor,
+        step(linearColor, vec3(0.0031308))
+    ), 0., 1.);
 }
 
 void main() {
-    float radius = 50.;
+    float radius = 70.;
 
     float a, d;
     vec2 center;
 
     vec2 uv = vPos / 100.;
     vec3 brushColor = vec3(0., 0., 1.);
-    vec3 color = vec3(1., 1., 1.);
+    vec4 color4 = texture2D(uSampler, vec2(uv.s, uv.t));
+    vec3 color = vec3(color4.r, color4.g, color4.b);
 
     float x = 50.;
     float y = 50.;
-
-    vec3 exp = vec3(E);
 
     for (int i = 0; i < 100; i++) {
         center = vec2(x, y);
@@ -39,26 +41,34 @@ void main() {
         d = distance(center, vPos);
         a = smoothstep(0., 1., d / radius);
 
-        color = pow(a * pow(color, exp) + (1. - a) * pow(brushColor, exp), 1. / exp);
+        vec3 linearBrushColor = toLinear(brushColor);
+        vec3 linearColor = toLinear(color);
+
+        color = toSRGB(mix(linearBrushColor, linearColor, a));
 
         x += 5.;
-        y += pow(float(i) / 10., 2.);
+        y += pow(float(i) / 20., 2.);
     }
+
+
+    x = 50.;
+    y = 450. - 50.;
 
     brushColor = vec3(0., 1., 0.);
 
-    x = 50.;
-    y = 50.;
     for (int i = 0; i < 100; i++) {
-        center = vec2(x, 300. - y);
+        center = vec2(x, y);
 
         d = distance(center, vPos);
         a = smoothstep(0., 1., d / radius);
 
-        color = pow(a * pow(color, exp) + (1. - a) * pow(brushColor, exp), 1. / exp);
+        vec3 linearBrushColor = toLinear(brushColor);
+        vec3 linearColor = toLinear(color);
+
+        color = toSRGB(mix(linearBrushColor, linearColor, a));
 
         x += 5.;
-        y += pow(float(i) / 10., 2.);
+        y -= pow(float(i) / 20., 2.);
     }
 
     gl_FragColor = vec4(color, 1.);
