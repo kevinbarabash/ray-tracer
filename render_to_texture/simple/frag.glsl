@@ -39,15 +39,15 @@ void main() {
         center = vec2(x, y);
 
         d = distance(center, vPos);
-        a = smoothstep(0., 1., d / radius);
+        a = smoothstep(1., 0., d / radius);
 
         vec3 linearBrushColor = toLinear(brushColor);
         vec3 linearColor = toLinear(color);
 
-        color = toSRGB(mix(linearBrushColor, linearColor, a));
+        color = toSRGB(mix(linearColor, linearBrushColor, a));
 
-        x += 5.;
-        y += pow(float(i) / 20., 2.);
+        x += 20.;
+        y += pow(float(i) / 5., 2.);
     }
 
 
@@ -60,15 +60,15 @@ void main() {
         center = vec2(x, y);
 
         d = distance(center, vPos);
-        a = smoothstep(0., 1., d / radius);
+        a = smoothstep(1., 0., d / radius);
 
         vec3 linearBrushColor = toLinear(brushColor);
         vec3 linearColor = toLinear(color);
 
-        color = toSRGB(mix(linearBrushColor, linearColor, a));
+        color = toSRGB(mix(linearColor, linearBrushColor, a * 0.25));
 
-        x += 5.;
-        y -= pow(float(i) / 20., 2.);
+        x += 20.;
+        y -= pow(float(i) / 5., 2.);
     }
 
     gl_FragColor = vec4(color, 1.);
