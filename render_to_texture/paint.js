@@ -36,6 +36,32 @@ const distance = (p1, p2) => {
     return Math.sqrt(dx * dx + dy * dy);
 };
 
+// Adapted from http://www.malczak.linuxpl.com/blog/quadratic-bezier-curve-length/
+function blen(p0, p1, p2) {
+    const a = [];
+    const b = [];
+
+    a[0] = p0[0] - 2*p1[0] + p2[0];
+    a[1] = p0[1] - 2*p1[1] + p2[1];
+    b[0] = 2*p1[0] - 2*p0[0];
+    b[1] = 2*p1[1] - 2*p0[1];
+    const A = 4*(a[0]*a[0] + a[1]*a[1]);
+    const B = 4*(a[0]*b[0] + a[1]*b[1]);
+    const C = b[0]*b[0] + b[1]*b[1];
+
+    const Sabc = 2*Math.sqrt(A+B+C);
+    const A_2 = Math.sqrt(A);
+    const A_32 = 2*A*A_2;
+    const C_2 = 2*Math.sqrt(C);
+    const BA = B/A_2;
+
+    return (
+            A_32 * Sabc +
+            A_2 * B * (Sabc - C_2) +
+            (4 * C * A - B * B) * Math.log( (2 * A_2 + BA + Sabc) / (BA + C_2) )
+        ) / (4*A_32);
+}
+
 const radius = 10;
 
 ctx.lineWidth = 2 * radius;
@@ -86,7 +112,7 @@ drags.onValue((e) => {
 
 ctx.fillStyle = 'rgba(0, 0, 255, 1.0)';
 
-const spacing = 0.25 * radius;
+let spacing = 2 * radius;
 
 const line = (start, end) => {
     const d = distance(end, start);
@@ -119,3 +145,45 @@ for (let i = 0; i <= 2 * Math.PI; i += 0.1) {
         lastPoint = line(lastPoint, currentPoint);
     }
 }
+
+
+const curve = (p1, cp, p2, lastPoint = p1) => {
+    let len = blen(p1, cp, p2);
+    let dt = spacing / len;
+
+    spacing = 2.2 * radius;
+
+    for (let t = 0; t <= 1.0; t += dt) {
+        const s = 1 - t;
+        const x = s * s * p1[0] + 2 * s * t * cp[0] + t * t * p2[0];
+        const y = s * s * p1[1] + 2 * s * t * cp[1] + t * t * p2[1];
+
+        const currentPoint = [x, y];
+        const d = distance(lastPoint, currentPoint);
+        if (d >= spacing) {
+            lastPoint = line(lastPoint, currentPoint);
+        }
+    }
+
+    return lastPoint;
+};
+
+let p1 = [50, 300];
+let p2 = [256, 300];
+let cp = [(50 + 256) / 2, 100];
+
+ctx.fillStyle = 'green';
+ctx.fillCircle(...p1, radius);
+
+lastPoint = curve(p1, cp, p2);
+
+p1 = [256, 300];
+p2 = [512 - 50, 300];
+cp = [(256 + 512 - 50) / 2, 500];
+
+lastPoint = curve(p1, cp, p2, lastPoint);
+
+ctx.fillCircle(...p2, radius);
+
+console.log(distance(lastPoint, p2));
+console.log(`spacing = ${spacing}`);
