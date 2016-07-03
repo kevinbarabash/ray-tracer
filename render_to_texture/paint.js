@@ -17,8 +17,9 @@ const downs = Kefir.fromEvents(document, 'mousedown');
 const moves = Kefir.fromEvents(document, 'mousemove');
 const ups = Kefir.fromEvents(document, 'mouseup');
 
+let lastMousePoint = null;
+let lastMouseMidpoint = null;
 let lastPoint = null;
-let lastMidpoint = null;
 
 const randomInt = (max) => max * Math.random() | 0;
 
@@ -70,18 +71,17 @@ ctx.lineCap = 'round';
 downs.onValue((e) => {
     ctx.fillStyle = randomColor();
     ctx.strokeStyle = ctx.fillStyle;
+    lastMousePoint = [e.pageX, e.pageY];
     lastPoint = [e.pageX, e.pageY];
-    ctx.fillCircle(...lastPoint, radius);
+    ctx.fillCircle(...lastMousePoint, radius);
 });
 ups.onValue((event) => {
     const currentPoint = [event.pageX, event.pageY];
 
-    ctx.beginPath();
-    ctx.moveTo(...lastPoint);
-    ctx.lineTo(...currentPoint);
+    lastPoint = line(lastMousePoint, currentPoint);
 
-    lastPoint = null;
-    lastMidpoint = null;
+    lastMousePoint = null;
+    lastMouseMidpoint = null;
 });
 
 // TODO: filter out points that are too close
@@ -94,20 +94,17 @@ drags.onValue((e) => {
     //     lastPoint = line(lastPoint, currentPoint);
     // }
 
-    const midPoint = [(lastPoint[0] + currentPoint[0])/2, (lastPoint[1] + currentPoint[1])/2];
+    const midPoint = [(lastMousePoint[0] + currentPoint[0])/2, (lastMousePoint[1] + currentPoint[1])/2];
 
     ctx.beginPath();
-    if (!lastMidpoint) {
-        ctx.moveTo(...lastPoint);
-        ctx.lineTo(...midPoint);
+    if (!lastMouseMidpoint) {
+        lastPoint = line(lastMousePoint, midPoint);
     } else {
-        ctx.moveTo(...lastMidpoint);
-        ctx.quadraticCurveTo(...lastPoint, ...midPoint);
+        lastPoint = curve(lastMouseMidpoint, lastMousePoint, midPoint, lastPoint);
     }
-    ctx.stroke();
 
-    lastMidpoint = midPoint;
-    lastPoint = currentPoint;
+    lastMouseMidpoint = midPoint;
+    lastMousePoint = currentPoint;
 });
 
 ctx.fillStyle = 'rgba(0, 0, 255, 1.0)';
@@ -151,7 +148,7 @@ const curve = (p1, cp, p2, lastPoint = p1) => {
     let len = blen(p1, cp, p2);
     let dt = spacing / len;
 
-    spacing = 2.2 * radius;
+    spacing = 2 * radius;
 
     for (let t = 0; t <= 1.0; t += dt) {
         const s = 1 - t;
