@@ -1,9 +1,11 @@
 precision highp  float;
 
-varying vec3 vColor;
 varying vec2 vPos;
+varying vec2 vUV;
 
 uniform sampler2D uSampler;
+uniform vec2 uMousePos;
+uniform vec3 uColor;
 
 vec3 toLinear(vec3 sRGBColor) {
     return clamp(mix(
@@ -25,51 +27,21 @@ void main() {
     float radius = 70.;
 
     float a, d;
-    vec2 center;
 
-    vec2 uv = vPos / 100.;
-    vec3 brushColor = vec3(0., 0., 1.);
-    vec4 color4 = texture2D(uSampler, vec2(uv.s, uv.t));
+    vec3 brushColor = uColor;
+    vec4 color4 = texture2D(uSampler, vUV);
     vec3 color = vec3(color4.r, color4.g, color4.b);
 
     float x = 50.;
     float y = 50.;
 
-    for (int i = 0; i < 100; i++) {
-        center = vec2(x, y);
+    d = distance(uMousePos, vPos);
+    a = smoothstep(1., 0., d / radius);
 
-        d = distance(center, vPos);
-        a = smoothstep(1., 0., d / radius);
+    vec3 linearBrushColor = toLinear(brushColor);
+    vec3 linearColor = toLinear(color);
 
-        vec3 linearBrushColor = toLinear(brushColor);
-        vec3 linearColor = toLinear(color);
-
-        color = toSRGB(mix(linearColor, linearBrushColor, a));
-
-        x += 20.;
-        y += pow(float(i) / 5., 2.);
-    }
-
-
-    x = 50.;
-    y = 450. - 50.;
-
-    brushColor = vec3(0., 1., 0.);
-
-    for (int i = 0; i < 100; i++) {
-        center = vec2(x, y);
-
-        d = distance(center, vPos);
-        a = smoothstep(1., 0., d / radius);
-
-        vec3 linearBrushColor = toLinear(brushColor);
-        vec3 linearColor = toLinear(color);
-
-        color = toSRGB(mix(linearColor, linearBrushColor, a * 0.25));
-
-        x += 20.;
-        y -= pow(float(i) / 5., 2.);
-    }
+    color = toSRGB(mix(linearColor, linearBrushColor, a));
 
     gl_FragColor = vec4(color, 1.);
 }
