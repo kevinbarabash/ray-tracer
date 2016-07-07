@@ -44,7 +44,7 @@ tex2.bind();
 
 gl.uniform1i(simple.uniforms.uSampler, 0);
 gl.uniform2fv(simple.uniforms.uMousePos, [x, y]);
-gl.uniform3fv(simple.uniforms.uColor, [0., 0., 1.]);
+gl.uniform3fv(simple.uniforms.uColor, [1., 0., 1.]);
 
 simple.buffers.pos.bind();
 simple.attributes.pos.pointer(2, gl.FLOAT, false, 0, 0);
@@ -55,7 +55,6 @@ simple.attributes.uv.pointer(2, gl.FLOAT, false, 0, 0);
 simple.buffers.elements.bind();
 gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
 
-gl.flush();
 
 
 const rtt = createProgram('texture');
@@ -85,7 +84,7 @@ rtt.attributes.uv.pointer(2, gl.FLOAT, false, 0, 0);
 rtt.buffers.elements.bind();
 gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
 
-gl.flush();
+
 
 let color = [Math.random(), Math.random(), Math.random()];
 let down = false;
@@ -126,8 +125,6 @@ document.addEventListener('mousedown', (e) => {
     simple.buffers.elements.bind();
     gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
 
-    gl.flush();
-
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
 
@@ -151,8 +148,6 @@ document.addEventListener('mousedown', (e) => {
 
     rtt.buffers.elements.bind();
     gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
-
-    gl.flush();
 
     lastX = x;
     lastY = y;
@@ -201,8 +196,6 @@ document.addEventListener('mousemove', (e) => {
     simple.buffers.elements.bind();
     gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
 
-    gl.flush();
-
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
 
@@ -227,7 +220,6 @@ document.addEventListener('mousemove', (e) => {
     rtt.buffers.elements.bind();
     gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
 
-    gl.flush();
 
     lastX = x;
     lastY = y;
@@ -281,7 +273,7 @@ document.addEventListener('mouseup', (e) => {
     simple.buffers.elements.bind();
     gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
 
-    gl.flush();
+
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -306,8 +298,6 @@ document.addEventListener('mouseup', (e) => {
 
     rtt.buffers.elements.bind();
     gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
-
-    gl.flush();
 
     lastX = x;
     lastY = y;
