@@ -6,6 +6,7 @@ varying vec2 vUV;
 uniform sampler2D uSampler;
 uniform vec2 uMousePos;
 uniform vec3 uColor;
+uniform float uRadius;
 
 vec3 toLinear(vec3 sRGBColor) {
     return clamp(mix(
@@ -24,8 +25,6 @@ vec3 toSRGB(vec3 linearColor) {
 }
 
 void main() {
-    float radius = 70.;
-
     float a, d;
 
     vec3 brushColor = uColor;
@@ -36,7 +35,7 @@ void main() {
     float y = 50.;
 
     d = distance(uMousePos, vPos);
-    a = smoothstep(1., 0., d / radius);
+    a = smoothstep(1., 0., d / uRadius);
 
     vec3 linearBrushColor = toLinear(brushColor);
     vec3 linearColor = toLinear(color);

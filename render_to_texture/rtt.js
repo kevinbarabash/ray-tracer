@@ -1,3 +1,12 @@
+/*
+
+    copy bg -> fg
+    draw brush strokes on fg
+    draw fg -> screen
+    swap fg <-> bg
+
+ */
+
 const width = window.innerWidth;
 const height = window.innerHeight;
 
@@ -31,7 +40,7 @@ gl.viewport(0, 0, width, height);
 simple.useProgram();
 
 let projMatrix;
-let radius = 70;
+let radius = 30;
 let x = 100;
 let y = 100;
 
@@ -45,6 +54,7 @@ tex2.bind();
 gl.uniform1i(simple.uniforms.uSampler, 0);
 gl.uniform2fv(simple.uniforms.uMousePos, [x, y]);
 gl.uniform3fv(simple.uniforms.uColor, [1., 0., 1.]);
+gl.uniform1f(simple.uniforms.uRadius, radius);
 
 simple.buffers.pos.bind();
 simple.attributes.pos.pointer(2, gl.FLOAT, false, 0, 0);
