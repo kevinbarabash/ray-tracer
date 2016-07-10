@@ -1,10 +1,5 @@
 precision highp  float;
 
-varying vec2 vPos;
-varying vec2 vUV;
-
-uniform sampler2D uSampler;
-uniform vec2 uMousePos;
 uniform vec3 uColor;
 uniform float uRadius;
 
@@ -25,10 +20,15 @@ vec3 toSRGB(vec3 linearColor) {
 }
 
 void main() {
-    float a, d;
+    vec2 point = gl_PointCoord;
+    vec2 center = vec2(0.5, 0.5);
 
-    d = distance(uMousePos, vPos);
-    a = smoothstep(1., 0., d / uRadius);
+    point = 2. * (point - center);
 
-    gl_FragColor = vec4(uColor, 0.25 * a);
+    float a = 1. - length(point);
+    float pxSize = 1. / uRadius;
+
+    a = smoothstep(0.0, pxSize, a);
+
+    gl_FragColor = vec4(uColor, a);
 }
