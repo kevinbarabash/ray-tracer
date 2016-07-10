@@ -28,7 +28,7 @@ void main() {
     float a = 1. - length(point);
     float pxSize = 1. / uRadius;
 
-    a = smoothstep(0.0, pxSize, a);
+    a = smoothstep(0.0, 1.0, a);
 
     gl_FragColor = vec4(uColor, a);
 }
