@@ -38,7 +38,35 @@ if (canvas.width > canvas.height) {
 }
 
 const bounds = new Float32Array([left, bottom, right, bottom, right, _top, left, _top]);
-const c = [0.1, 0.7];
+
+
+class Complex {
+    constructor(re, im) {
+        Object.assign(this, { re, im });
+    }
+
+    get arg() {
+        return Math.atan2(this.im, this.re);
+    }
+
+    set arg(val) {
+        const mod = this.mod;
+        this.re = Math.cos(val) * mod;
+        this.im = Math.sin(val) * mod;
+    }
+
+    get mod() {
+        return Math.sqrt(this.re * this.re + this.im * this.im);
+    }
+
+    set mod(val) {
+        const scale = val / this.mod;
+        this.re *= scale;
+        this.im *= scale;
+    }
+}
+
+const c = new Complex(0.13, 0.71);
 
 program.buffers.pos = createBuffer(gl.ARRAY_BUFFER, new Float32Array([0, 0, w, 0, w, h, 0, h]), gl.STATIC_DRAW);
 program.buffers.uv = createBuffer(gl.ARRAY_BUFFER, bounds, gl.STATIC_DRAW);
@@ -56,7 +84,7 @@ const draw = function() {
 
     const projMatrix = ortho([], 0, w, 0, h, -1, 1);
     gl.uniformMatrix4fv(program.uniforms.projMatrix, false, projMatrix);
-    gl.uniform2fv(program.uniforms.c, c);
+    gl.uniform2fv(program.uniforms.c, [c.re, c.im]);
 
     // set up vertex attributes before drawing
     program.buffers.pos.bind();
@@ -223,5 +251,7 @@ document.addEventListener('wheel', function(e) {
 
 var gui = new dat.GUI();
 
-gui.add(c, '0', -2, 2);
-gui.add(c, '1', -2, 2);
+gui.add(c, 're', -2, 2);
+gui.add(c, 'im', -2, 2);
+gui.add(c, 'mod', 0.1, 2.0).step(0.01);
+gui.add(c, 'arg', -Math.PI, Math.PI).step(0.01);
