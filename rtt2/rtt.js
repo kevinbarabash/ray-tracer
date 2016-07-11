@@ -13,7 +13,7 @@ const height = window.innerHeight;
 const canvas = document.querySelector('canvas');
 canvas.width = width;
 canvas.height = height;
-const gl = canvas.getContext('webgl2', { preserveDrawingBuffer: true });
+const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true });
 
 const simple = createProgram('simple');
 
@@ -42,7 +42,7 @@ simple.useProgram();
 
 let projMatrix;
 // TODO: instead of radius use line width/thickness
-let radius = 30;
+let radius = 100;
 
 projMatrix = ortho([], 0, width, 0, height, 1, -1);    // near z is positive
 gl.viewport(0, 0, width, height);
@@ -72,7 +72,7 @@ const drawPoints = (points) => {
     const len = points.length / 2;
     simple.buffers.elements.update(new Uint16Array([...range(len)]));
     gl.drawElements(gl.POINTS, len, gl.UNSIGNED_SHORT, 0);
-}
+};
 
 const line = (start, end) => {
     const d = distance(end, start);
@@ -188,7 +188,6 @@ gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
 
 
 let color = [Math.random(), Math.random(), Math.random()];
-let down = false;
 
 let lastMousePoint = null;
 let lastMouseMidpoint = null;
@@ -219,7 +218,7 @@ const drags = downs.flatMap((event) => moves.takeUntilBy(ups));
 drags.onValue((e) => {
     simple.useProgram();
 
-    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA, gl.DST_ALPHA);
 
     // TODO: don't redraw the whole screen each time
     projMatrix = ortho([], 0, width, 0, height, 1, -1);    // near z is positive

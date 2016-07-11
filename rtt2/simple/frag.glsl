@@ -3,21 +3,11 @@ precision highp  float;
 uniform vec3 uColor;
 uniform float uRadius;
 
-vec3 toLinear(vec3 sRGBColor) {
-    return clamp(mix(
-        pow((sRGBColor + vec3(0.055)) / 1.055, vec3(2.4)),
-        sRGBColor / 12.92,
-        step(sRGBColor, vec3(0.04045))
-    ), 0., 1.);
-}
-
-vec3 toSRGB(vec3 linearColor) {
-    return clamp(mix(
-        1.055 * pow(linearColor, vec3(1. / 2.4)) - vec3(0.055),
-        12.92 * linearColor,
-        step(linearColor, vec3(0.0031308))
-    ), 0., 1.);
-}
+mat3 rgb2xyz = mat3(
+    0.4124, 0.3576, 0.1805,
+    0.2126, 0.7152, 0.0722,
+    0.0193, 0.1192, 0.9505
+);
 
 void main() {
     vec2 point = gl_PointCoord;
@@ -30,5 +20,5 @@ void main() {
 
     a = smoothstep(0.0, 1.0, a);
 
-    gl_FragColor = vec4(uColor, a);
+    gl_FragColor = vec4(rgb2xyz * uColor, a);
 }
