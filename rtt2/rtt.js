@@ -1,12 +1,3 @@
-/*
-
-    copy bg -> fg
-    draw brush strokes on fg
-    draw fg -> screen
-    swap fg <-> bg
-
- */
-
 const width = window.innerWidth;
 const height = window.innerHeight;
 
@@ -84,7 +75,6 @@ const line = (start, end) => {
     let t = 0;
 
     const points = [];
-    // points.push(...start);
 
     while (t + spacing < d) {
         p[0] += spacing * cos;
@@ -99,23 +89,24 @@ const line = (start, end) => {
 };
 
 // Adapted from http://www.malczak.linuxpl.com/blog/quadratic-bezier-curve-length/
-function blen(p0, p1, p2) {
+function bezier_len(p0, p1, p2) {
     const a = [];
     const b = [];
 
-    a[0] = p0[0] - 2*p1[0] + p2[0];
-    a[1] = p0[1] - 2*p1[1] + p2[1];
-    b[0] = 2*p1[0] - 2*p0[0];
-    b[1] = 2*p1[1] - 2*p0[1];
-    const A = 4*(a[0]*a[0] + a[1]*a[1]);
-    const B = 4*(a[0]*b[0] + a[1]*b[1]);
-    const C = b[0]*b[0] + b[1]*b[1];
+    a[0] = p0[0] - 2 * p1[0] + p2[0];
+    a[1] = p0[1] - 2 * p1[1] + p2[1];
+    b[0] = 2 * p1[0] - 2 * p0[0];
+    b[1] = 2 * p1[1] - 2 * p0[1];
 
-    const Sabc = 2*Math.sqrt(A+B+C);
+    const A = 4 * (a[0] * a[0] + a[1] * a[1]);
+    const B = 4 * (a[0] * b[0] + a[1] * b[1]);
+    const C = b[0] * b[0] + b[1] * b[1];
+
+    const Sabc = 2 * Math.sqrt(A + B + C);
     const A_2 = Math.sqrt(A);
-    const A_32 = 2*A*A_2;
-    const C_2 = 2*Math.sqrt(C);
-    const BA = B/A_2;
+    const A_32 = 2 * A * A_2;
+    const C_2 = 2 * Math.sqrt(C);
+    const BA = B / A_2;
 
     return (
             A_32 * Sabc +
@@ -125,10 +116,8 @@ function blen(p0, p1, p2) {
 }
 
 const curve = (p1, cp, p2, lastPoint = p1) => {
-    let len = blen(p1, cp, p2);
-    let dt = spacing / len;
-
-    // spacing = 2 * radius;
+    const len = bezier_len(p1, cp, p2);
+    const dt = spacing / len;
 
     for (let t = 0; t <= 1.0; t += dt) {
         const s = 1 - t;
@@ -153,8 +142,7 @@ const range = function* (len) {
     }
 };
 
-// const p = line([100, 50], [800, 600]);
-const p = curve([100, 50], [400, 300], [800, 100]);
+curve([100, 50], [400, 300], [800, 100]);
 
 const rtt = createProgram('texture');
 rtt.buffers.pos = createBuffer(gl.ARRAY_BUFFER, new Float32Array([0, 0, width, 0, width, height, 0, height]), gl.STATIC_DRAW);
@@ -192,43 +180,14 @@ let color = [Math.random(), Math.random(), Math.random()];
 let lastMousePoint = null;
 let lastMouseMidpoint = null;
 let lastPoint = null;
-let x, y, lastX, lastY;
 
 const downs = Kefir.fromEvents(document, 'mousedown');
 const moves = Kefir.fromEvents(document, 'mousemove');
 const ups = Kefir.fromEvents(document, 'mouseup');
 
-downs.onValue((e) => {
-    color = [Math.random(), Math.random(), Math.random()];
-    lastMousePoint = [e.pageX, height - e.pageY];
-    lastPoint = [e.pageX, height - e.pageY];
-    // TODO: draw a single circle
-
-    simple.useProgram();
-
-    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA, gl.DST_ALPHA);
-
-    // TODO: don't redraw the whole screen each time
-    projMatrix = ortho([], 0, width, 0, height, 1, -1);    // near z is positive
-    gl.viewport(0, 0, width, height);
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex.texture, 0);
-
-    gl.uniformMatrix4fv(simple.uniforms.projMatrix, false, projMatrix);
-    gl.uniform3fv(simple.uniforms.uColor, color);
-
-    x = e.pageX;
-    y = height - e.pageY;
-    const currentPoint = [e.pageX, height - e.pageY];
-
-    drawPoints(currentPoint);
-
-    lastMousePoint = currentPoint;
-
+const updateCanvas = () => {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-    // update canvas
     rtt.useProgram();
 
     gl.blendFunc(gl.ONE, gl.ZERO);
@@ -250,9 +209,32 @@ downs.onValue((e) => {
 
     rtt.buffers.elements.bind();
     gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
+};
 
-    lastX = x;
-    lastY = y;
+downs.onValue((e) => {
+    color = [Math.random(), Math.random(), Math.random()];
+    lastMousePoint = [e.pageX, height - e.pageY];
+    lastPoint = [e.pageX, height - e.pageY];
+
+    simple.useProgram();
+
+    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA, gl.DST_ALPHA);
+
+    // TODO: don't redraw the whole screen each time
+    projMatrix = ortho([], 0, width, 0, height, 1, -1);    // near z is positive
+    gl.viewport(0, 0, width, height);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex.texture, 0);
+
+    gl.uniformMatrix4fv(simple.uniforms.projMatrix, false, projMatrix);
+    gl.uniform3fv(simple.uniforms.uColor, color);
+
+    const currentPoint = [e.pageX, height - e.pageY];
+
+    drawPoints(currentPoint);
+
+    updateCanvas();
 });
 
 ups.onValue((e) => {
@@ -280,8 +262,6 @@ drags.onValue((e) => {
     gl.uniformMatrix4fv(simple.uniforms.projMatrix, false, projMatrix);
     gl.uniform3fv(simple.uniforms.uColor, color);
 
-    x = e.pageX;
-    y = height - e.pageY;
     const currentPoint = [e.pageX, height - e.pageY];
     const midPoint = [(lastMousePoint[0] + currentPoint[0])/2, (lastMousePoint[1] + currentPoint[1])/2];
 
@@ -294,31 +274,5 @@ drags.onValue((e) => {
     lastMouseMidpoint = midPoint;
     lastMousePoint = currentPoint;
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-    // update canvas
-    rtt.useProgram();
-
-    gl.blendFunc(gl.ONE, gl.ZERO);
-
-    // projMatrix = ortho([], x - radius, x + radius, y - radius, y + radius, 1, -1);    // near z is positive
-    // gl.viewport(x - radius, y - radius, 2 * radius, 2 * radius);
-
-    gl.uniformMatrix4fv(rtt.uniforms.projMatrix, false, projMatrix);
-
-    gl.activeTexture(gl.TEXTURE1);
-    tex.bind();
-    gl.uniform1i(rtt.uniforms.uSampler, 1);
-
-    rtt.buffers.pos.bind();
-    rtt.attributes.pos.pointer(2, gl.FLOAT, false, 0, 0);
-
-    rtt.buffers.uv.bind();
-    rtt.attributes.uv.pointer(2, gl.FLOAT, false, 0, 0);
-
-    rtt.buffers.elements.bind();
-    gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
-
-    lastX = x;
-    lastY = y;
+    updateCanvas();
 });
