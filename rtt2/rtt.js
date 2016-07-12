@@ -42,7 +42,7 @@ simple.useProgram();
 
 let projMatrix;
 // TODO: instead of radius use line width/thickness
-let radius = 100;
+let radius = 30;
 
 projMatrix = ortho([], 0, width, 0, height, 1, -1);    // near z is positive
 gl.viewport(0, 0, width, height);
@@ -87,10 +87,10 @@ const line = (start, end) => {
     // points.push(...start);
 
     while (t + spacing < d) {
-        points.push(...p);
         p[0] += spacing * cos;
         p[1] += spacing * sin;
         t += spacing;
+        points.push(...p);
     }
 
     drawPoints(points);
@@ -203,6 +203,56 @@ downs.onValue((e) => {
     lastMousePoint = [e.pageX, height - e.pageY];
     lastPoint = [e.pageX, height - e.pageY];
     // TODO: draw a single circle
+
+    simple.useProgram();
+
+    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA, gl.DST_ALPHA);
+
+    // TODO: don't redraw the whole screen each time
+    projMatrix = ortho([], 0, width, 0, height, 1, -1);    // near z is positive
+    gl.viewport(0, 0, width, height);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex.texture, 0);
+
+    gl.uniformMatrix4fv(simple.uniforms.projMatrix, false, projMatrix);
+    gl.uniform3fv(simple.uniforms.uColor, color);
+
+    x = e.pageX;
+    y = height - e.pageY;
+    const currentPoint = [e.pageX, height - e.pageY];
+
+    drawPoints(currentPoint);
+
+    lastMousePoint = currentPoint;
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    // update canvas
+    rtt.useProgram();
+
+    gl.blendFunc(gl.ONE, gl.ZERO);
+
+    // projMatrix = ortho([], x - radius, x + radius, y - radius, y + radius, 1, -1);    // near z is positive
+    // gl.viewport(x - radius, y - radius, 2 * radius, 2 * radius);
+
+    gl.uniformMatrix4fv(rtt.uniforms.projMatrix, false, projMatrix);
+
+    gl.activeTexture(gl.TEXTURE1);
+    tex.bind();
+    gl.uniform1i(rtt.uniforms.uSampler, 1);
+
+    rtt.buffers.pos.bind();
+    rtt.attributes.pos.pointer(2, gl.FLOAT, false, 0, 0);
+
+    rtt.buffers.uv.bind();
+    rtt.attributes.uv.pointer(2, gl.FLOAT, false, 0, 0);
+
+    rtt.buffers.elements.bind();
+    gl.drawElements(gl.TRIANGLE_FAN, 4, gl.UNSIGNED_SHORT, 0);
+
+    lastX = x;
+    lastY = y;
 });
 
 ups.onValue((e) => {
