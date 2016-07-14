@@ -14,5 +14,6 @@ void main() {
     float a = 1. - clamp(length(2. * (gl_PointCoord - vec2(0.5))), 0., 1.);
     float pxSize = 1. / uRadius;
 
-    gl_FragColor = vec4(rgb2xyz * uColor, smoothstep(0., pxSize, a));
+    //gl_FragColor = vec4(rgb2xyz * uColor, smoothstep(0., pxSize, a));
+    gl_FragColor = vec4(rgb2xyz * uColor, 0.1 * a);
 }

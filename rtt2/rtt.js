@@ -4,7 +4,8 @@ const height = window.innerHeight;
 const canvas = document.querySelector('canvas');
 canvas.width = width;
 canvas.height = height;
-const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true });
+const gl = canvas.getContext('webgl2', { preserveDrawingBuffer: true });
+const ext = gl.getExtension('EXT_color_buffer_float');
 
 const simple = createProgram('simple');
 
@@ -16,7 +17,7 @@ simple.buffers.pos = createBuffer(gl.ARRAY_BUFFER, new Float32Array([200, 200]),
 simple.buffers.elements = createBuffer(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0]), gl.STATIC_DRAW);
 
 // create an empty texture
-var tex = createTexture(gl.TEXTURE_2D, gl.RGBA, width, height, { minFilter: gl.LINEAR, magFilter: gl.NEAREST });
+var tex = createTexture(gl.TEXTURE_2D, gl.RGBA, width, height, { minFilter: gl.NEAREST, magFilter: gl.NEAREST });
 
 // create a fbo and attac the texture to it
 var fb = gl.createFramebuffer();
@@ -33,7 +34,7 @@ simple.useProgram();
 
 let projMatrix;
 // TODO: instead of radius use line width/thickness
-let radius = 30;
+let radius = 100;
 
 projMatrix = ortho([], 0, width, 0, height, 1, -1);    // near z is positive
 gl.viewport(0, 0, width, height);
